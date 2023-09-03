@@ -65,10 +65,10 @@ public class TransportService
 		await RecreateDatabase();
 		_writeLine();
 		_writeLine("Adding items...");
-		var result = await SeedDbWithIds();
+		var changedItemCount = await SeedDbWithIds();
 
-		if (result > 0)
-			_writeLine($"result: {result}\nSave successful");
+		if (changedItemCount > 0)
+			_writeLine($"result: {changedItemCount}\nSave successful");
 		else
 			_writeLine("Nothing saved");
 	}
@@ -117,8 +117,7 @@ public class TransportService
 				PassengerCount = 4
 			});
 
-		var result = await context.SaveChangesAsync();
-		return result;
+		return await context.SaveChangesAsync();
 	}
 
 	private async Task<int> SeedDbWithGuidIds()
@@ -165,7 +164,6 @@ public class TransportService
 				PassengerCount = 4
 			});
 
-		var result = await context.SaveChangesAsync();
-		return result;
+		return await context.SaveChangesAsync();
 	}
 }
