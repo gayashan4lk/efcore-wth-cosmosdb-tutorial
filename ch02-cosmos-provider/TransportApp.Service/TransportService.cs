@@ -80,7 +80,7 @@ public class TransportService
 		context.Add(
 			new Address
 			{
-				AddressId = $"{nameof(Address)}-1",
+				// AddressId = $"{nameof(Address)}-1",
 				City = "Colombo",
 				State = "Western",
 				Street = "Central St.",
@@ -90,7 +90,7 @@ public class TransportService
 		context.Add(
 			new Driver
 			{
-				DriverId = $"{nameof(Driver)}-1",
+				// DriverId = $"{nameof(Driver)}-1",
 				FirstName = "Jake",
 				LastName = "Sully",
 				EmploymentBeginUtc = DateTime.UtcNow
@@ -99,7 +99,7 @@ public class TransportService
 		context.Add(
 			new Vehicle
 			{
-				VehicleId = $"{nameof(Vehicle)}-1",
+				// VehicleId = $"{nameof(Vehicle)}-1",
 				Make = "Toyota",
 				Model = "Land Cruiser",
 				Year = 1998,
@@ -111,7 +111,7 @@ public class TransportService
 		context.Add(
 			new Trip
 			{
-				TripId = $"{nameof(Trip)}-1",
+				// TripId = $"{nameof(Trip)}-1",
 				BeginUtc = new DateTime(2023, 3, 25, 11, 25, 0, DateTimeKind.Utc),
 				EndUtc = DateTime.UtcNow,
 				PassengerCount = 4
@@ -127,7 +127,7 @@ public class TransportService
 		context.Add(
 			new Address
 			{
-				AddressId = new Guid().ToString(),
+				// AddressId = new Guid().ToString(),
 				City = "Colombo",
 				State = "Western",
 				Street = "Central St.",
@@ -137,7 +137,7 @@ public class TransportService
 		context.Add(
 			new Driver
 			{
-				DriverId = new Guid().ToString(),
+				// DriverId = new Guid().ToString(),
 				FirstName = "Jake",
 				LastName = "Sully",
 				EmploymentBeginUtc = DateTime.UtcNow
@@ -146,7 +146,7 @@ public class TransportService
 		context.Add(
 			new Vehicle
 			{
-				VehicleId = new Guid().ToString(),
+				// VehicleId = new Guid().ToString(),
 				Make = "Toyota",
 				Model = "Land Cruiser",
 				Year = 1998,
@@ -158,7 +158,7 @@ public class TransportService
 		context.Add(
 			new Trip
 			{
-				TripId = new Guid().ToString(),
+				// TripId = new Guid().ToString(),
 				BeginUtc = new DateTime(2023, 3, 25, 11, 25, 0, DateTimeKind.Utc),
 				EndUtc = DateTime.UtcNow,
 				PassengerCount = 4

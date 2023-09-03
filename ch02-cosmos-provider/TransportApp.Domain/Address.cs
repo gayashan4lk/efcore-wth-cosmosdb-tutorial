@@ -33,7 +33,7 @@ namespace TransportApp.Domain
 {
   public class Address
   {
-    public string AddressId { get; set; }
+    public Guid AddressId { get; set; } = Guid.NewGuid();
     public string State { get; set; }
     public string City { get; set; }
     public string Street { get; set; }

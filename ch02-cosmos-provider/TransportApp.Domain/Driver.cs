@@ -33,7 +33,7 @@ namespace TransportApp.Domain
 {
   public class Driver
   {
-    public string DriverId { get; set; }
+    public Guid DriverId { get; set; } = Guid.NewGuid();
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public DateTime EmploymentBeginUtc { get; set; }

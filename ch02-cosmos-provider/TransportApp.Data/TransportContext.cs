@@ -87,9 +87,8 @@ namespace TransportApp.Data
               .ToContainer(nameof(Vehicle))
               .HasPartitionKey(vehicle => vehicle.Make);
 
-            // modelBuilder.Entity<Trip>()
-            //   .HasNoDiscriminator()
-            //   .ToContainer(nameof(Trip));
+            modelBuilder.Entity<Trip>()
+              .ToContainer(nameof(Trip));
     }
   }
 }

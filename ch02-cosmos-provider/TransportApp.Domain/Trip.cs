@@ -34,7 +34,7 @@ namespace TransportApp.Domain
   public class Trip
   {
     // [Key]
-    public string TripId { get; set; }
+    public Guid TripId { get; set; } = Guid.NewGuid();
     public DateTime BeginUtc { get; set; }
     public DateTime? EndUtc { get; set; }
     public short PassengerCount { get; set; }
