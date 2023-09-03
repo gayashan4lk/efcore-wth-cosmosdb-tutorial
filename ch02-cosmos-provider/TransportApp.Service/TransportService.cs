@@ -33,83 +33,139 @@ using Microsoft.EntityFrameworkCore;
 using TransportApp.Data;
 using TransportApp.Domain;
 
-namespace TransportApp.Service
+namespace TransportApp.Service;
+
+public delegate void WriteLine(string text = "", bool highlight = false, bool isException = false);
+
+public class TransportService
 {
-  public delegate void WriteLine(string text = "", bool highlight = false, bool isException = false);
+	#region Setup
 
-  public class TransportService
-  {
-    #region Setup
+	public TransportService(IDbContextFactory<TransportContext> contextFactory, WriteLine writeLine)
+	{
+		_contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+		_writeLine = writeLine ?? throw new ArgumentNullException(nameof(writeLine));
+	}
 
-    public TransportService(IDbContextFactory<TransportContext> contextFactory, WriteLine writeLine)
-    {
-      this.contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
-      this.writeLine = writeLine ?? throw new ArgumentNullException(nameof(writeLine));
-    }
+	private readonly IDbContextFactory<TransportContext> _contextFactory;
+	private readonly WriteLine _writeLine;
 
-    private readonly IDbContextFactory<TransportContext> contextFactory;
-    private readonly WriteLine writeLine;
+	private async Task RecreateDatabase()
+	{
+		await using var context = await _contextFactory.CreateDbContextAsync();
 
-    private async Task RecreateDatabase()
-    {
-      using var context = await contextFactory.CreateDbContextAsync();
+		await context.Database.EnsureDeletedAsync();
+		await context.Database.EnsureCreatedAsync();
+	}
 
-      await context.Database.EnsureDeletedAsync();
-      await context.Database.EnsureCreatedAsync();
-    }
+	#endregion
 
-    #endregion
+	public async Task RunSample()
+	{
+		await RecreateDatabase();
+		_writeLine();
+		_writeLine("Adding items...");
+		var result = await SeedDbWithIds();
 
-    public async Task RunSample()
-    {
-        await RecreateDatabase();
-        writeLine();
-        writeLine("Adding items...");
-        using var context = await contextFactory.CreateDbContextAsync();
+		if (result > 0)
+			_writeLine($"result: {result}\nSave successful");
+		else
+			_writeLine("Nothing saved");
+	}
 
-        context.Add(
-            new Address
-            {
-                AddressId = $"{nameof(Address)}-1",
-                City = "Colombo",
-                State = "Western",
-                Street = "Central St.",
-                HouseNumber = "999"
-            });
+	private async Task<int> SeedDbWithIds()
+	{
+		var context = await _contextFactory.CreateDbContextAsync();
 
-        context.Add(
-            new Driver
-            {
-                DriverId = $"{nameof(Driver)}-1",
-                FirstName = "Jake",
-                LastName = "Sully",
-                EmploymentBeginUtc = DateTime.UtcNow,
-            });
+		context.Add(
+			new Address
+			{
+				AddressId = $"{nameof(Address)}-1",
+				City = "Colombo",
+				State = "Western",
+				Street = "Central St.",
+				HouseNumber = "999"
+			});
 
-        context.Add(
-            new Vehicle
-            {
-                VehicleId = $"{nameof(Vehicle)}-1",
-                Make = "Toyota",
-                Model = "Land Cruser",
-                Year = 1998,
-                LicensePlate = "2SDG586",
-                Mileage = 150336,
-                PassengerSeatCount = 6,
-            });
+		context.Add(
+			new Driver
+			{
+				DriverId = $"{nameof(Driver)}-1",
+				FirstName = "Jake",
+				LastName = "Sully",
+				EmploymentBeginUtc = DateTime.UtcNow
+			});
 
-        context.Add(
-            new Trip
-            {
-                TripId = $"{nameof(Trip)}-1",
-                BeginUtc = new DateTime(2023, 3, 25, 11, 25, 0, DateTimeKind.Utc),
-                EndUtc = DateTime.UtcNow,
-                PassengerCount = 4,
-            });
+		context.Add(
+			new Vehicle
+			{
+				VehicleId = $"{nameof(Vehicle)}-1",
+				Make = "Toyota",
+				Model = "Land Cruiser",
+				Year = 1998,
+				LicensePlate = "2SDG586",
+				Mileage = 150336,
+				PassengerSeatCount = 6
+			});
 
-        await context.SaveChangesAsync();
+		context.Add(
+			new Trip
+			{
+				TripId = $"{nameof(Trip)}-1",
+				BeginUtc = new DateTime(2023, 3, 25, 11, 25, 0, DateTimeKind.Utc),
+				EndUtc = DateTime.UtcNow,
+				PassengerCount = 4
+			});
 
-        writeLine("Save successful");
-    }
-  }
+		var result = await context.SaveChangesAsync();
+		return result;
+	}
+
+	private async Task<int> SeedDbWithGuidIds()
+	{
+		var context = await _contextFactory.CreateDbContextAsync();
+
+		context.Add(
+			new Address
+			{
+				AddressId = new Guid().ToString(),
+				City = "Colombo",
+				State = "Western",
+				Street = "Central St.",
+				HouseNumber = "999"
+			});
+
+		context.Add(
+			new Driver
+			{
+				DriverId = new Guid().ToString(),
+				FirstName = "Jake",
+				LastName = "Sully",
+				EmploymentBeginUtc = DateTime.UtcNow
+			});
+
+		context.Add(
+			new Vehicle
+			{
+				VehicleId = new Guid().ToString(),
+				Make = "Toyota",
+				Model = "Land Cruiser",
+				Year = 1998,
+				LicensePlate = "2SDG586",
+				Mileage = 150336,
+				PassengerSeatCount = 6
+			});
+
+		context.Add(
+			new Trip
+			{
+				TripId = new Guid().ToString(),
+				BeginUtc = new DateTime(2023, 3, 25, 11, 25, 0, DateTimeKind.Utc),
+				EndUtc = DateTime.UtcNow,
+				PassengerCount = 4
+			});
+
+		var result = await context.SaveChangesAsync();
+		return result;
+	}
 }
