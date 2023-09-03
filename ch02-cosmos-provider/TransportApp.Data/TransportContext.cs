@@ -66,7 +66,9 @@ namespace TransportApp.Data
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-      // TODO
+            modelBuilder.HasManualThroughput(600);
+            modelBuilder.HasDefaultContainer("AllInOne");
+            modelBuilder.Entity<Address>().Property(address => address.HouseNumber).ToJsonProperty("StreetHouseNumber");
     }
   }
 }

@@ -31,6 +31,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using TransportApp.Data;
+using TransportApp.Domain;
 
 namespace TransportApp.Service
 {
@@ -63,7 +64,53 @@ namespace TransportApp.Service
     {
       await RecreateDatabase();
 
-      // TODO
+            writeLine();
+            writeLine("Adding items...");
+            using var context = await contextFactory.CreateDbContextAsync();
+
+            context.Add(
+                new Address
+                {
+                    AddressId = $"{nameof(Address)}-1",
+                    City = "Colombo",
+                    State = "Western",
+                    Street = "Central St.",
+                    HouseNumber = "999"
+                });
+
+            context.Add(
+                new Driver
+                {
+                    DriverId = $"{nameof(Driver)}-1",
+                    FirstName = "Jake",
+                    LastName = "Sully",
+                    EmploymentBeginUtc = DateTime.UtcNow,
+                });
+
+            context.Add(
+                new Vehicle
+                {
+                    VehicleId = $"{nameof(Vehicle)}-1",
+                    Make = "Toyota",
+                    Model = "Land Cruser",
+                    Year = 1998,
+                    LicensePlate = "2SDG586",
+                    Mileage = 150336,
+                    PassengerSeatCount = 6,
+                });
+
+            context.Add(
+                new Trip
+                {
+                    TripId = $"{nameof(Trip)}-1",
+                    BeginUtc = new DateTime(2023, 3, 25, 11, 25, 0, DateTimeKind.Utc),
+                    EndUtc = DateTime.UtcNow,
+                    PassengerCount = 4,
+                });
+
+            await context.SaveChangesAsync();
+
+            writeLine("Save successful");
     }
   }
 }
