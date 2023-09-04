@@ -30,8 +30,10 @@
 #endregion
 
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using TransportApp.Data;
 using TransportApp.Domain;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace TransportApp.Service;
 
@@ -79,9 +81,19 @@ public class TransportService
 
 		var itemCount= await AddItemsFromDefaultContext(defaultContext);
 		_writeLine($"Item count: {itemCount}");
+
+		/*try
+		{
+			var trip = await GetTripFromDefaultContext(defaultContext);
+			_writeLine($"Trip:\n{JsonSerializer.Serialize(trip)}");
+		}
+		catch (Exception ex)
+		{
+			_writeLine(ex.ToString());
+		}*/
 	}
 
-	private async Task<int> AddItemsFromDefaultContext(TransportContext defaultContext)
+	private async Task<int> AddItemsFromDefaultContext(TransportContext context)
 	{
 		var vehicle = new Vehicle
 		{
@@ -164,13 +176,29 @@ public class TransportService
 			ToAddress = destinationAddress,
 		};
 
-		defaultContext.Add(vehicle);
-		defaultContext.Add(driver);
-		defaultContext.Add(trip);
+		context.Add(vehicle);
+		context.Add(driver);
+		context.Add(trip);
 
 		WriteTripInfo(trip);
+		
+		return await context.SaveChangesAsync();
+	}
 
-		return await defaultContext.SaveChangesAsync();
+	private async Task<Trip> GetTripFromDefaultContext(TransportContext context)
+	{
+		var trip = await context.Trips.FindAsync( new Guid("bc3891c8-cb43-43a5-834a-6d83035c2dc7"));
+		return (trip ?? null) ?? throw new InvalidOperationException("Trip is not found");
+
+		/*var createdTrip = await context.Trips.FindAsync(trip.TripId);
+		if (createdTrip != null)
+		{
+			_writeLine($"TripId:\n{createdTrip.TripId}");
+			_writeLine($"Trip.Driver:\n{JsonConvert.SerializeObject(createdTrip.Driver, Formatting.Indented)}");
+			_writeLine($"Trip.Vehicle:\n{JsonSerializer.Serialize(createdTrip.Vehicle)}");
+			_writeLine($"Trip.FromAddress:\n{JsonSerializer.Serialize(createdTrip.FromAddress)}");
+			_writeLine($"Trip.ToAddress:\n{JsonSerializer.Serialize(createdTrip.ToAddress)}");
+		}*/
 	}
 
 	private void WriteTripInfo(Trip trip)
