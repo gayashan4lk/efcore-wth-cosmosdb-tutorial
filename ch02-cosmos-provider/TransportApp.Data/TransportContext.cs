@@ -1,7 +1,7 @@
 ﻿#region Info and license
 
 /*
-  This demo application accompanies Pluralsight course 'Using EF Core 6 with Azure Cosmos DB', 
+  This demo application accompanies Pluralsight course 'Using EF Core 6 with Azure Cosmos DB',
   by Jurgen Kevelaers. See https://pluralsight.pxf.io/efcore6-cosmos.
 
   MIT License
@@ -32,63 +32,69 @@
 using Microsoft.EntityFrameworkCore;
 using TransportApp.Domain;
 
-namespace TransportApp.Data
+namespace TransportApp.Data;
+
+public class TransportContext : DbContext
 {
-  public class TransportContext : DbContext
-  {
-    public TransportContext(DbContextOptions<TransportContext> options)
-      : base(options)
-    { }
+	public TransportContext(DbContextOptions<TransportContext> options)
+		: base(options)
+	{
+	}
 
-    #region DbSets
+	#region DbSets
 
-    public DbSet<Driver> Drivers { get; set; }
-    public DbSet<Vehicle> Vehicles { get; set; }
-    public DbSet<Address> Addresses { get; set; }
-    public DbSet<Trip> Trips { get; set; }
+	public DbSet<Driver> Drivers { get; set; }
+	public DbSet<Vehicle> Vehicles { get; set; }
+	public DbSet<Address> Addresses { get; set; }
+	public DbSet<Trip> Trips { get; set; }
 
-    #endregion
+	#endregion
 
-    // If you're not using dependency injection to configure the context, 
-    // configure it here:
+	// If you're not using dependency injection to configure the context, 
+	// configure it here:
 
-    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
-    //  optionsBuilder
-    //    .UseCosmos(
-    //      connectionString: cosmosConnectionString,
-    //      databaseName: "TransportDb",
-    //      cosmosOptionsAction: options =>
-    //      {
-    //        options.ConnectionMode(Microsoft.Azure.Cosmos.ConnectionMode.Direct);
-    //        options.MaxRequestsPerTcpConnection(20);
-    //        options.MaxTcpConnectionsPerEndpoint(32);
-    //      });
+	//protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
+	//  optionsBuilder
+	//    .UseCosmos(
+	//      connectionString: cosmosConnectionString,
+	//      databaseName: "TransportDb",
+	//      cosmosOptionsAction: options =>
+	//      {
+	//        options.ConnectionMode(Microsoft.Azure.Cosmos.ConnectionMode.Direct);
+	//        options.MaxRequestsPerTcpConnection(20);
+	//        options.MaxTcpConnectionsPerEndpoint(32);
+	//      });
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-            modelBuilder.HasManualThroughput(600);
-            // modelBuilder.HasDefaultContainer("AllInOne");
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
+	{
+		modelBuilder.HasManualThroughput(600);
+		// modelBuilder.HasDefaultContainer("AllInOne");
 
-            modelBuilder.Entity<Address>()
-              .Property(address => address.HouseNumber)
-              .ToJsonProperty("StreetHouseNumber");
+		modelBuilder.Entity<Address>()
+			.Property(address => address.HouseNumber)
+			.ToJsonProperty("StreetHouseNumber");
 
-            modelBuilder.Entity<Address>()
-              .HasNoDiscriminator()
-              .ToContainer(nameof(Address))
-              .HasPartitionKey(address => address.State);
+		modelBuilder.Entity<Address>()
+			// .HasNoDiscriminator()
+			.ToContainer(nameof(Address))
+			.HasPartitionKey(address => address.State)
+			.HasKey(address => address.AddressId);
 
-            modelBuilder.Entity<Driver>()
-              .HasNoDiscriminator()
-              .ToContainer(nameof(Driver));
+		modelBuilder.Entity<Driver>()
+			// .HasNoDiscriminator()
+			.ToContainer(nameof(Driver))
+			.HasKey(driver => driver.DriverId);
 
-            modelBuilder.Entity<Vehicle>()
-              .HasNoDiscriminator()
-              .ToContainer(nameof(Vehicle))
-              .HasPartitionKey(vehicle => vehicle.Make);
+		modelBuilder.Entity<Vehicle>()
+			// .HasNoDiscriminator()
+			.ToContainer(nameof(Vehicle))
+			.HasPartitionKey(vehicle => vehicle.Make)
+			.HasKey(vehicle => vehicle.VehicleId);
 
-            modelBuilder.Entity<Trip>()
-              .ToContainer(nameof(Trip));
-    }
-  }
+		modelBuilder.Entity<Trip>()
+			// .HasNoDiscriminator()
+			.ToContainer(nameof(Trip))
+			.HasPartitionKey(trip => trip.VehicleId)
+			.HasKey(trip => trip.TripId);
+	}
 }

@@ -1,7 +1,7 @@
 ﻿#region Info and license
 
 /*
-  This demo application accompanies Pluralsight course 'Using EF Core 6 with Azure Cosmos DB', 
+  This demo application accompanies Pluralsight course 'Using EF Core 6 with Azure Cosmos DB',
   by Jurgen Kevelaers. See https://pluralsight.pxf.io/efcore6-cosmos.
 
   MIT License
@@ -29,53 +29,62 @@
 
 #endregion
 
+using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TransportApp.Data;
+using TransportApp.Service;
 
 Console.Title = "Getting Started with the Cosmos DB Provider";
 Console.WriteLine("Launching...");
 
 var config = new ConfigurationBuilder()
-  .AddJsonFile("appsettings.json")
-  .Build();
+	.AddJsonFile("appsettings.json")
+	.Build();
 
 var cosmosConnectionString = config["CosmosConnectionString"];
 
 var services = new ServiceCollection();
 
-services.AddDbContextFactory<TransportApp.Data.TransportContext>(optionsBuilder =>
-  optionsBuilder
-    .UseCosmos(
-      connectionString: cosmosConnectionString,
-      databaseName: "TransportDb",
-      cosmosOptionsAction: options =>
-      {
-        options.ConnectionMode(Microsoft.Azure.Cosmos.ConnectionMode.Direct);
-        options.MaxRequestsPerTcpConnection(20);
-        options.MaxTcpConnectionsPerEndpoint(32);
-      }));
+services.AddDbContextFactory<TransportContext>(optionsBuilder =>
+	optionsBuilder
+		.UseCosmos(
+			cosmosConnectionString,
+			"TransportDb",
+			options =>
+			{
+				options.ConnectionMode(ConnectionMode.Direct);
+				options.MaxRequestsPerTcpConnection(20);
+				options.MaxTcpConnectionsPerEndpoint(32);
+			}));
 
-services.AddTransient<TransportApp.Service.TransportService>();
+services.AddTransient<TransportService>();
 
-services.AddSingleton<TransportApp.Service.WriteLine>((text, highlight, isException) =>
+services.AddSingleton<WriteLine>((text, highlight, isException) =>
 {
-  if (isException)
-  {
-    Console.ForegroundColor = ConsoleColor.Red;
-  }
-  else if (highlight)
-  {
-    Console.ForegroundColor = ConsoleColor.Yellow;
-  }
+	if (isException)
+		Console.ForegroundColor = ConsoleColor.Red;
+	else if (highlight) Console.ForegroundColor = ConsoleColor.Yellow;
 
-  Console.WriteLine(text);
-  Console.ResetColor();
+	Console.WriteLine(text);
+	Console.ResetColor();
+});
+
+services.AddSingleton<WaitForNext>(actionName =>
+{
+	Console.ForegroundColor = ConsoleColor.Green;
+	Console.WriteLine();
+	Console.WriteLine($"Press ENTER to run {actionName}");
+	Console.ReadLine();
+	Console.Clear();
+	Console.WriteLine($"{actionName}:");
+	Console.ResetColor();
 });
 
 using var serviceProvider = services.BuildServiceProvider();
 
-var transportService = serviceProvider.GetRequiredService<TransportApp.Service.TransportService>();
+var transportService = serviceProvider.GetRequiredService<TransportService>();
 
 await transportService.RunSample();
 

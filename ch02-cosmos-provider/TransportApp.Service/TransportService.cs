@@ -36,24 +36,26 @@ using TransportApp.Domain;
 namespace TransportApp.Service;
 
 public delegate void WriteLine(string text = "", bool highlight = false, bool isException = false);
+public delegate void WaitForNext(string actionName);
 
 public class TransportService
 {
 	#region Setup
 
-	public TransportService(IDbContextFactory<TransportContext> contextFactory, WriteLine writeLine)
+	public TransportService(IDbContextFactory<TransportContext> contextFactory, WriteLine writeLine, WaitForNext waitForNext)
 	{
 		_contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
 		_writeLine = writeLine ?? throw new ArgumentNullException(nameof(writeLine));
+		_waitForNext = waitForNext ?? throw new ArgumentNullException(nameof(waitForNext));
 	}
 
 	private readonly IDbContextFactory<TransportContext> _contextFactory;
 	private readonly WriteLine _writeLine;
+	private readonly WaitForNext _waitForNext;
 
 	private async Task RecreateDatabase()
 	{
 		await using var context = await _contextFactory.CreateDbContextAsync();
-
 		await context.Database.EnsureDeletedAsync();
 		await context.Database.EnsureCreatedAsync();
 	}
@@ -65,12 +67,121 @@ public class TransportService
 		await RecreateDatabase();
 		_writeLine();
 		_writeLine("Adding items...");
-		var changedItemCount = await SeedDbWithIds();
+
+		/*var changedItemCount = await SeedDbWithIds();
 
 		if (changedItemCount > 0)
 			_writeLine($"result: {changedItemCount}\nSave successful");
 		else
-			_writeLine("Nothing saved");
+			_writeLine("Nothing saved");*/
+
+		using var defaultContext = await _contextFactory.CreateDbContextAsync();
+
+		var itemCount= await AddItemsFromDefaultContext(defaultContext);
+		_writeLine($"Item count: {itemCount}");
+	}
+
+	private async Task<int> AddItemsFromDefaultContext(TransportContext defaultContext)
+	{
+		var vehicle = new Vehicle
+		{
+			Make = "Toyota",
+			Model = "Hilux",
+			Year = 2005,
+			LicensePlate = "JKI2563",
+			Mileage = 25300,
+			PassengerSeatCount = 5,
+			TechnicalSpecifications = new Dictionary<string, string>
+			{
+				{
+					"Maximum horsepower", "275"
+				},
+				{
+					"Maximum torque", "265"
+				},
+				{
+					"Fuel capacity", "25.1"
+				},
+				{
+					"Length", "219.9"
+				},
+				{
+					"Width", "81.3"
+				}
+			},
+			CheckupUtcs = new List<DateTime>
+			{
+				new DateTime(2019, 2, 12, 11, 0, 0, DateTimeKind.Utc),
+				new DateTime(2020, 2, 12, 11, 0, 0, DateTimeKind.Utc),
+				new DateTime(2021, 2, 12, 11, 0, 0, DateTimeKind.Utc),
+				new DateTime(2022, 2, 12, 11, 0, 0, DateTimeKind.Utc),
+				new DateTime(2023, 2, 12, 11, 0, 0, DateTimeKind.Utc),
+			}
+		};
+
+		var driverAddress = new Address
+		{
+			City = "Galle",
+			State = "Sothern",
+			Street = "Barckly road",
+			HouseNumber = "25/A",
+		};
+
+		var originAddress = new Address
+		{
+			City = "Salt Lake City",
+			State = "Utah",
+			Street = "Course road",
+			HouseNumber = "54254/E/T"
+		};
+
+		var destinationAddress = new Address
+		{
+			City = "Rock springs",
+			State = "Wyoming",
+			Street = "Canal lane",
+			HouseNumber = "540/Z/Z"
+		};
+
+		var driver = new Driver
+		{
+			FirstName = "Jhonny",
+			LastName = "Depp",
+			EmploymentBeginUtc = new DateTime(2022, 1, 14, 9, 0, 0, DateTimeKind.Utc),
+			Address = driverAddress
+		};
+
+		var trip = new Trip
+		{
+			BeginUtc = new DateTime(2022, 2, 23, 10, 45, 12, DateTimeKind.Utc),
+			EndUtc = new DateTime(2022, 2, 23, 11, 25, 36, DateTimeKind.Utc),
+			PassengerCount = 4,
+			// DriverId = driver.DriverId,
+			// VehicleId = vehicle.VehicleId,
+			Driver = driver,
+			Vehicle = vehicle,
+			FromAddress = originAddress,
+			ToAddress = destinationAddress,
+		};
+
+		defaultContext.Add(vehicle);
+		defaultContext.Add(driver);
+		defaultContext.Add(trip);
+
+		WriteTripInfo(trip);
+
+		return await defaultContext.SaveChangesAsync();
+	}
+
+	private void WriteTripInfo(Trip trip)
+	{
+		_writeLine($"From address instance available on trip: {(trip.FromAddress == null ? "no" : "yes")}");
+		_writeLine($"To address instance available on trip: {(trip.ToAddress == null ? "no" : "yes")}");
+		_writeLine($"Driver instance available on trip: {(trip.Driver == null ? "no" : "yes")}");
+		_writeLine($"Vehicle instance available on trip: {(trip.Vehicle == null ? "no" : "yes")}");
+
+		if (trip.Driver?.Trips != null) _writeLine($"Driver has {trip.Driver.Trips.Count} trip instance(s).");
+		if (trip.Vehicle?.Trips != null) _writeLine($"Vehicle has {trip.Vehicle.Trips.Count} trip instance(s).");
 	}
 
 	private async Task<int> SeedDbWithIds()

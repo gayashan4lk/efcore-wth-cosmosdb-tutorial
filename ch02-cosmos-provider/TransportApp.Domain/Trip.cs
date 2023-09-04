@@ -1,7 +1,7 @@
 ﻿#region Info and license
 
 /*
-  This demo application accompanies Pluralsight course 'Using EF Core 6 with Azure Cosmos DB', 
+  This demo application accompanies Pluralsight course 'Using EF Core 6 with Azure Cosmos DB',
   by Jurgen Kevelaers. See https://pluralsight.pxf.io/efcore6-cosmos.
 
   MIT License
@@ -29,14 +29,25 @@
 
 #endregion
 
-namespace TransportApp.Domain
+namespace TransportApp.Domain;
+
+public class Trip
 {
-  public class Trip
-  {
-    // [Key]
-    public Guid TripId { get; set; } = Guid.NewGuid();
-    public DateTime BeginUtc { get; set; }
-    public DateTime? EndUtc { get; set; }
-    public short PassengerCount { get; set; }
-  }
+	// [Key]
+	public Guid TripId { get; set; } = Guid.NewGuid();
+	public DateTime BeginUtc { get; set; }
+	public DateTime? EndUtc { get; set; }
+	public short PassengerCount { get; set; }
+
+	public Guid DriverId { get; set; }
+	public Driver Driver { get; set; }
+
+	public Guid VehicleId { get; set; }
+	public Vehicle Vehicle { get; set; }
+
+	public Guid FromAddressId { get; set; }
+	public Address FromAddress { get; set; }
+
+	public Guid ToAddressId { get; set; }
+	public Address ToAddress { get; set; }
 }
